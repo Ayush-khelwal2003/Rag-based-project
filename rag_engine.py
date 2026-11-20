@@ -22,6 +22,18 @@ TEMPERATURE    = 0.3
 TOP_K_CHUNKS   = 5
 
 
+def _get_secret(key: str, default: str = "") -> str:
+    val = os.getenv(key, "")
+    if not val:
+        try:
+            import streamlit as st
+            if key in st.secrets:
+                val = str(st.secrets[key])
+        except Exception:
+            pass
+    return val or default
+
+
 class RAGEngine:
     """
     End-to-end RAG pipeline:
@@ -30,7 +42,7 @@ class RAGEngine:
 
     def __init__(self, vector_store: VectorStore):
         self.vs = vector_store
-        self.co = cohere.Client(os.getenv("COHERE_API_KEY", ""))
+        self.co = cohere.Client(_get_secret("COHERE_API_KEY"))
 
     # ── Context builder ───────────────────────────────────────────────────────
 

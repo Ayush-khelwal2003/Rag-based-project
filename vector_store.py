@@ -20,13 +20,25 @@ EMBED_DIMENSION  = 1024                   # dimension for embed-english-v3.0
 UPSERT_BATCH     = 100                    # vectors per Pinecone upsert batch
 
 
+def _get_secret(key: str, default: str = "") -> str:
+    val = os.getenv(key, "")
+    if not val:
+        try:
+            import streamlit as st
+            if key in st.secrets:
+                val = str(st.secrets[key])
+        except Exception:
+            pass
+    return val or default
+
+
 class VectorStore:
     """Wraps Cohere embeddings and a Pinecone index for RAG retrieval."""
 
     def __init__(self):
-        cohere_key  = os.getenv("COHERE_API_KEY", "")
-        pinecone_key = os.getenv("PINECONE_API_KEY", "")
-        self.index_name = os.getenv("PINECONE_INDEX_NAME", "rag-document-qa")
+        cohere_key   = _get_secret("COHERE_API_KEY")
+        pinecone_key = _get_secret("PINECONE_API_KEY")
+        self.index_name = _get_secret("PINECONE_INDEX_NAME", "rag-document-qa")
 
         if not cohere_key or not pinecone_key:
             raise ValueError(

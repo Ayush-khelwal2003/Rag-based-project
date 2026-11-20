@@ -446,8 +446,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # API Keys Health
-    cohere_key_set   = bool(os.getenv("COHERE_API_KEY"))
-    pinecone_key_set = bool(os.getenv("PINECONE_API_KEY"))
+    def _has_key(k):
+        return bool(os.getenv(k) or (hasattr(st, "secrets") and k in st.secrets))
+
+    cohere_key_set   = _has_key("COHERE_API_KEY")
+    pinecone_key_set = _has_key("PINECONE_API_KEY")
 
     st.markdown("""
     <div class="glass-panel">
