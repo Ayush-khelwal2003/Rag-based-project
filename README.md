@@ -1,29 +1,46 @@
-# 📄 RAG-Based Document Question Answering System
+# 🧠 DocMind AI — RAG-Based Document Question Answering System
 
-A **Retrieval-Augmented Generation (RAG)** chatbot that lets you upload any PDF and ask natural-language questions about its content — powered by **Cohere embeddings**, **Pinecone vector search**, and a **Streamlit** UI.
+[![Live Demo](https://img.shields.io/badge/Streamlit-Live_Demo-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://rag-based-project-jsaymum9zccpzfvxucbmmh.streamlit.app)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=Python&logoColor=white)](https://www.python.org/)
+[![Cohere](https://img.shields.io/badge/Cohere-Embeddings_%26_LLM-39594C?style=for-the-badge)](https://cohere.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-Serverless_Vector_DB-000000?style=for-the-badge)](https://www.pinecone.io/)
+
+> **🌐 Live Application:** [https://rag-based-project-jsaymum9zccpzfvxucbmmh.streamlit.app](https://rag-based-project-jsaymum9zccpzfvxucbmmh.streamlit.app)
+
+A full-stack **Retrieval-Augmented Generation (RAG)** chatbot that allows users to upload PDF documents and ask context-aware questions to receive document-specific answers with real-time source citations and similarity scores.
 
 ---
 
-## 🏗️ Architecture
+## ✨ Features
+
+- **📄 Document Processing**: Text extraction and sliding-window chunking via PyPDF2.
+- **⚡ Semantic Search**: Powered by **Cohere `embed-english-v3.0`** (1024 dimensions) and **Pinecone Serverless Vector Database**.
+- **🎯 Context-Aware Generation**: Leverages **Cohere `command-a-03-2025`** with multi-turn prompt augmentation to guarantee grounded, hallucination-free answers.
+- **🔍 Source Verification**: Interactive citation accordions displaying retrieved chunk IDs, excerpt text, and cosine similarity match percentages.
+- **🎨 Modern Dark UI**: Polished glassmorphic Streamlit interface with suggested queries, analytics metrics, and session export tools.
+
+---
+
+## 🏗️ System Architecture
 
 ```
-PDF Upload
-   │
-   ▼
-pdf_processor.py  ──►  Text Extraction (PyPDF2)
-                        Word-based Chunking (500 words / 50 overlap)
-   │
-   ▼
-vector_store.py   ──►  Cohere embed-english-v3.0  (1024-dim embeddings)
-                        Pinecone Serverless Index  (cosine similarity)
-   │
-   ▼
-rag_engine.py     ──►  User Question → embed → Pinecone query (top-K)
-                        Build context prompt → Cohere command-r-plus
-                        Return answer + source excerpts
-   │
-   ▼
-app.py            ──►  Streamlit interactive UI
+PDF Document
+    │
+    ▼
+pdf_processor.py   ──►  Extract text (PyPDF2)
+                         Sliding-window chunking (500 words / 50 overlap)
+    │
+    ▼
+vector_store.py    ──►  Embed via Cohere (embed-english-v3.0)
+                         Upsert vectors into Pinecone Serverless Index
+    │
+    ▼
+rag_engine.py      ──►  Embed query → Cosine similarity retrieval (top-K)
+                         Augment prompt with retrieved excerpts
+                         Generate grounded answer via Cohere (command-a-03-2025)
+    │
+    ▼
+app.py             ──►  Streamlit interactive frontend (chat, sources, analytics)
 ```
 
 ---
@@ -32,28 +49,30 @@ app.py            ──►  Streamlit interactive UI
 
 ```
 RAG_Project/
-├── app.py               # Streamlit UI (main entry point)
-├── pdf_processor.py     # PDF extraction + chunking
-├── vector_store.py      # Cohere embeddings + Pinecone operations
-├── rag_engine.py        # RAG orchestration + answer generation
+├── app.py               # Streamlit application UI & chat interface
+├── pdf_processor.py     # PDF text extraction and chunking pipeline
+├── vector_store.py      # Cohere embeddings & Pinecone vector DB integration
+├── rag_engine.py        # RAG pipeline orchestration & generation
 ├── requirements.txt     # Python dependencies
 ├── .env.example         # Environment variable template
-└── README.md
+├── .gitignore           # Prevents secrets (.env) from leaking
+└── README.md            # Project documentation & live links
 ```
 
 ---
 
-## ⚙️ Setup
+## 🚀 Quickstart (Local Setup)
 
-### 1. Clone / navigate to project
+### 1. Clone repository
 ```bash
-cd RAG_Project
+git clone https://github.com/Ayush-khelwal2003/Rag-based-project.git
+cd Rag-based-project
 ```
 
-### 2. Create a virtual environment
+### 2. Set up virtual environment
 ```bash
 python3 -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+source venv/bin/activate      # On Windows: venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
@@ -61,68 +80,55 @@ source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure API keys
-
-Copy the example env file and fill in your keys:
+### 4. Configure environment variables
+Create a `.env` file based on `.env.example`:
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Add your API keys inside `.env`:
 ```env
-COHERE_API_KEY=<your Cohere API key>
-PINECONE_API_KEY=<your Pinecone API key>
+COHERE_API_KEY=your_cohere_api_key_here
+PINECONE_API_KEY=your_pinecone_api_key_here
 PINECONE_INDEX_NAME=rag-document-qa
 ```
 
-| Key | Where to get it |
-|-----|----------------|
-| `COHERE_API_KEY` | [dashboard.cohere.com](https://dashboard.cohere.com) → API Keys |
-| `PINECONE_API_KEY` | [app.pinecone.io](https://app.pinecone.io) → API Keys |
+| Key | Description | Source |
+|---|---|---|
+| `COHERE_API_KEY` | Required for embeddings & answer generation | [Cohere Dashboard](https://dashboard.cohere.com/api-keys) |
+| `PINECONE_API_KEY` | Vector database API key | [Pinecone Console](https://app.pinecone.io) |
 
-> **Pinecone free tier** supports 1 serverless index — the app auto-creates it on first run.
-
-### 5. Run the app
+### 5. Launch the application
 ```bash
 streamlit run app.py
 ```
-
-The app opens at **http://localhost:8501** in your browser.
-
----
-
-## 🚀 Usage
-
-1. **Upload** a PDF using the file uploader.
-2. Wait for the ✅ success message — the document is chunked, embedded, and stored in Pinecone.
-3. **Type a question** in the chat box and press **Send 🚀**.
-4. The assistant retrieves the most relevant excerpts and generates a grounded answer.
-5. Click **"View source excerpts"** under any answer to see which parts of the document were used.
-6. Use **🗑️ Remove Document** (sidebar) to clear the index and upload a new PDF.
+Open **http://localhost:8501** in your browser.
 
 ---
 
-## 🔧 Configuration
+## ☁️ Deployment on Streamlit Cloud
 
-| Setting | File | Default |
-|---------|------|---------|
-| Chunk size (words) | `pdf_processor.py` → `CHUNK_SIZE` | 500 |
-| Chunk overlap | `pdf_processor.py` → `CHUNK_OVERLAP` | 50 |
-| Embedding model | `vector_store.py` → `EMBED_MODEL` | `embed-english-v3.0` |
-| Generation model | `rag_engine.py` → `GENERATE_MODEL` | `command-r-plus` |
-| Max answer tokens | `rag_engine.py` → `MAX_TOKENS` | 800 |
-| Top-K chunks | Sidebar slider | 5 (1–10) |
+1. Fork or push this repository to GitHub.
+2. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/).
+3. Deploy with:
+   - **Repository:** `Ayush-khelwal2003/Rag-based-project`
+   - **Branch:** `main`
+   - **Main file:** `app.py`
+4. Add your API keys under **App Settings ➔ Secrets**:
+   ```toml
+   COHERE_API_KEY = "your_cohere_key"
+   PINECONE_API_KEY = "your_pinecone_key"
+   PINECONE_INDEX_NAME = "rag-document-qa"
+   ```
 
 ---
 
-## 📦 Dependencies
+## ⚙️ Configuration & Models
 
-| Package | Purpose |
-|---------|---------|
-| `streamlit` | Interactive web UI |
-| `cohere` | Embeddings + text generation |
-| `pinecone-client` | Vector database |
-| `PyPDF2` | PDF text extraction |
-| `python-dotenv` | Environment variable loading |
-
-# Rag-based-project
+| Component | Technology / Model | Default |
+|---|---|---|
+| Embedding Model | Cohere `embed-english-v3.0` | 1024 Dimensions |
+| Vector Database | Pinecone Serverless | Cosine Metric |
+| Generation LLM | Cohere `command-a-03-2025` | Temperature = 0.3 |
+| Chunk Strategy | Sliding Window | 500 words / 50 overlap |
+| Top-K Retrieval | Dynamic slider | 5 chunks |
